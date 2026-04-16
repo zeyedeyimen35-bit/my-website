@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zeyede Academy | Ultimate Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Noto+Sans+Ethiopic:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --primary: #007cc3; --success: #14bf96; --danger: #ff3b3f; --bg: #f8fafc; }
+        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Ethiopic', sans-serif; background-color: var(--bg); overflow: hidden; }
+        
+        /* Custom UI Elements */
+        .glass-card { background: white; border: 1px solid rgba(0,0,0,0.05); border-radius: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.02); transition: all 0.3s ease; }
+        .glass-card:hover { transform: translateY(-4px); box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
+        .input-style { w-full; padding: 1rem; background: #f1f5f9; border-radius: 1rem; outline: none; transition: 0.3s; width: 100%; border: 2px solid transparent; }
+        .input-style:focus { border-color: var(--primary); background: white; }
+        
+        /* Navigation */
+        .nav-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 1rem; font-weight: 700; color: #64748b; cursor: pointer; transition: 0.3s; }
+        .nav-item:hover { background: #f1f5f9; }
+        .nav-item.active { background: #eff6ff; color: var(--primary); border-right: 4px solid var(--primary); }
+        
+        /* Progress Bar */
+        .progress-bar { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-top: 0.5rem; }
+        .progress-fill { height: 100%; transition: width 1s ease; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s ease-in-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Live Pulse */
+        .live-pulse { width: 10px; height: 10px; background: var(--danger); border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+    </style>
+</head>
+<body class="flex h-screen text-slate-800">
+
+    <div id="auth-layer" class="fixed inset-0 z-[9999] bg-slate-50 flex items-center justify-center p-6 overflow-y-auto">
+        <div class="max-w-md w-full glass-card p-10 mt-10 mb-10">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-3xl font-black mx-auto mb-4 shadow-lg shadow-blue-200">Z</div>
+                <h1 id="auth-title" class="text-3xl font-black tracking-tighter uppercase">Create Account</h1>
+                <p id="auth-subtitle" class="text-slate-500 mt-2 text-sm font-bold">Zeyede Academy Enterprise</p>
+            </div>
+
+            <div id="signup-form" class="space-y-4">
+                <div class="flex justify-center mb-6">
+                    <div class="relative">
+                        <img id="pfp-preview" src="https://ui-avatars.com/api/?name=U&background=random" class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg">
+                        <label for="pfp-upload" class="absolute bottom-0 right-0 bg-blue-600 text-white p-2.5 rounded-full cursor-pointer shadow-lg hover:scale-110 transition">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M4 5h16v14H4V5zm2 2v10h12V7H6zm4 2l2.5 3 1.5-2 3 4H7l3-5z"/></svg>
+                        </label>
+                        <input type="file" id="pfp-upload" class="hidden" accept="image/*" onchange="loadProfileImage(this)">
+                    </div>
+                </div>
+                <input id="reg-name" type="text" placeholder="Full Name (ሙሉ ስም)" class="input-style">
+                <input id="reg-email" type="email" placeholder="University Email" class="input-style">
+                <input id="reg-pass" type="password" placeholder="Password (የይለፍ ቃል)" class="input-style">
+                <button onclick="authenticate('signup')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-sm shadow-xl shadow-blue-200 hover:bg-blue-700 transition">SIGN UP NOW</button>
+                
+                <div class="flex items-center gap-4 my-6">
+                    <hr class="flex-1 border-slate-200"> <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Or</span> <hr class="flex-1 border-slate-200">
+                </div>
+                <button class="w-full flex items-center justify-center gap-3 p-4 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition font-bold text-slate-600">
+                    <img src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png" class="w-5"> Sign up with Google
+                </button>
+                <p class="text-center text-sm text-slate-500 mt-6 font-bold">Already registered? <button onclick="toggleAuthMode(true)" class="text-blue-600 hover:underline">Sign In</button></p>
+            </div>
+
+            <div id="signin-form" class="hidden space-y-4">
+                <input id="login-email" type="email" placeholder="Email Address" class="input-style">
+                <input id="login-pass" type="password" placeholder="Password" class="input-style">
+                <button onclick="authenticate('signin')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-sm shadow-xl shadow-blue-200 hover:bg-blue-700 transition">SIGN IN</button>
+                <p class="text-center text-sm text-slate-500 mt-6 font-bold">New student? <button onclick="toggleAuthMode(false)" class="text-blue-600 hover:underline">Create Account</button></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden flex h-full w-full">
+        
+        <aside class="w-72 bg-white border-r border-slate-200 flex flex-col">
+            <div class="h-20 flex items-center gap-3 px-8 border-b border-slate-100">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black">Z</div>
+                <h2 class="font-black text-lg tracking-tight italic">Z-ACADEMY</h2>
+            </div>
+
+            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 px-4">Main Menu</p>
+                
+                <button onclick="switchTab('feed')" id="tab-feed" class="nav-item w-full active">
+                    <span class="text-xl">🌐</span> <span>Social Feed</span>
+                </button>
+                
+                <button onclick="switchTab('courses')" id="tab-courses" class="nav-item w-full">
+                    <span class="text-xl">📚</span> <span>My Courses</span>
+                </button>
+                
+                <button onclick="switchTab('zoom')" id="tab-zoom" class="nav-item w-full">
+                    <span class="text-xl">📹</span> <span>Zoom Live</span>
+                    <div class="live-pulse ml-auto"></div>
+                </button>
+                
+                <button onclick="switchTab('vault')" id="tab-vault" class="nav-item w-full text-red-500 hover:bg-red-50">
+                    <span class="text-xl">🔐</span> <span>Z-Secrete Vault</span>
+                </button>
+            </nav>
+
+            <div class="p-6 border-t border-slate-100">
+                <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl">
+                    <img id="sidebar-pfp" src="" class="w-10 h-10 rounded-xl object-cover">
+                    <div class="overflow-hidden flex-1">
+                        <p id="sidebar-name" class="font-bold text-sm truncate">Student Name</p>
+                        <p class="text-[9px] text-blue-500 font-black uppercase tracking-widest">Freshman</p>
+                    </div>
+                    <button onclick="logout()" class="text-slate-400 hover:text-red-500 p-2"><span class="text-lg">🚪</span></button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col h-full bg-[#f8fafc]">
+            <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-40">
+                <h2 id="header-title" class="text-2xl font-black text-slate-800 tracking-tight">Social Learning Feed</h2>
+                <div class="flex items-center gap-4">
+                    <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-200">DBU Enterprise</span>
+                </div>
+            </header>
+
+            <div class="flex-1 p-8 overflow-y-auto custom-scroll relative">
+                
+                <section id="view-feed" class="fade-in max-w-3xl mx-auto space-y-8">
+                    <div class="glass-card p-6">
+                        <div class="flex gap-4">
+                            <img id="composer-pfp" src="" class="w-12 h-12 rounded-full object-cover shadow-sm">
+                            <textarea id="post-text" placeholder="Share a question, note, or resource... (ምን አዲስ ትምህርት አለ?)" class="w-full bg-slate-50 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-blue-500/20 resize-none h-24 text-sm font-medium"></textarea>
+                        </div>
+                        <div id="file-preview-area" class="mt-4 hidden p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-3">
+                            <span class="text-xl">📎</span>
+                            <span id="file-name-display" class="text-xs font-bold text-blue-600 truncate flex-1"></span>
+                            <button onclick="clearFile()" class="text-slate-400 hover:text-red-500 font-bold text-xs">Remove</button>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-slate-100">
+                            <label for="post-file" class="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition">
+                                <span>📷</span> Photo / Video
+                            </label>
+                            <input type="file" id="post-file" class="hidden" accept="image/*,video/*" onchange="attachFile(this)">
+                            <button onclick="publishPost()" class="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-black text-sm hover:bg-blue-700 transition shadow-lg shadow-blue-200">Post Activity</button>
+                        </div>
+                    </div>
+                    <div id="feed-container" class="space-y-6"></div>
+                </section>
+
+                <section id="view-courses" class="hidden fade-in space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="glass-card p-6 border-b-4 border-blue-500"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Enrolled</p><h3 class="text-3xl font-black mt-1">6 Courses</h3></div>
+                        <div class="glass-card p-6 border-b-4 border-green-500"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Average Progress</p><h3 class="text-3xl font-black mt-1">68%</h3></div>
+                        <div class="glass-card p-6 border-b-4 border-purple-500"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Next Exit Exam</p><h3 class="text-3xl font-black mt-1">Ready</h3></div>
+                    </div>
+                    <h3 class="font-black text-xl text-slate-800 italic border-l-4 border-blue-600 pl-3">Academic Modules</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="course-grid"></div>
+                </section>
+
+                <section id="view-zoom" class="hidden fade-in space-y-8">
+                    <div class="bg-gradient-to-br from-slate-900 to-blue-900 rounded-[2rem] p-10 text-white shadow-2xl relative overflow-hidden">
+                        <div class="relative z-10">
+                            <span class="bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-2 w-max mb-4">
+                                <span class="w-2 h-2 bg-white rounded-full animate-ping"></span> LIVE NOW
+                            </span>
+                            <h3 class="text-4xl font-black tracking-tighter mb-2">Information Systems Architecture</h3>
+                            <p class="text-blue-200 mb-8 max-w-md text-sm font-medium leading-relaxed">የቀጥታ ስልጠና አሁን እየተካሄደ ነው። ገብተው ይከታተሉ፣ ጥያቄዎችንም በቻት ይጠይቁ።</p>
+                            <button class="bg-white text-blue-900 px-8 py-3 rounded-xl font-black text-sm hover:scale-105 transition shadow-xl">JOIN CLASSROOM</button>
+                        </div>
+                        <div class="absolute right-0 bottom-0 opacity-20 text-[15rem] leading-none pointer-events-none">📹</div>
+                    </div>
+                    <h3 class="font-black text-xl text-slate-800 italic border-l-4 border-blue-600 pl-3">Recorded Sessions</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="zoom-grid"></div>
+                </section>
+
+                <section id="view-vault" class="hidden h-full flex flex-col">
+                    <div id="vault-lock" class="flex-1 flex flex-col items-center justify-center text-center fade-in">
+                        <div class="w-24 h-24 bg-red-100 rounded-[2rem] flex items-center justify-center text-red-600 text-4xl mb-6 shadow-inner border border-red-200">🔐</div>
+                        <h2 class="text-3xl font-black text-slate-800 tracking-tighter">Z-Secrete Vault</h2>
+                        <p class="text-slate-500 mt-2 mb-8 text-sm font-bold max-w-xs">Restricted Area. Enter 4-digit security PIN to access classified resources.</p>
+                        <input type="password" id="vault-pin" placeholder="••••" maxlength="4" class="w-48 p-4 bg-white border-2 border-slate-200 rounded-2xl text-center text-3xl tracking-[1em] outline-none focus:border-red-500 transition mb-6 shadow-sm font-black text-slate-800">
+                        <button onclick="unlockVault()" class="bg-red-600 text-white px-12 py-4 rounded-xl font-black text-sm hover:bg-red-700 transition shadow-lg shadow-red-200 w-48">UNLOCK</button>
+                    </div>
+                    
+                    <div id="vault-content" class="hidden fade-in space-y-6">
+                        <div class="flex justify-between items-center bg-red-50 p-6 rounded-[1.5rem] border border-red-100">
+                            <div>
+                                <h2 class="text-2xl font-black text-red-600 tracking-tight">Classified Files</h2>
+                                <p class="text-xs text-red-500 font-bold uppercase tracking-widest mt-1">Exams • Answer Keys • Secret Notes</p>
+                            </div>
+                            <button onclick="lockVault()" class="bg-white text-red-600 px-6 py-2.5 rounded-xl font-black text-xs border border-red-200 shadow-sm hover:bg-red-600 hover:text-white transition">LOCK VAULT</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6" id="vault-grid"></div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- 1. STATE & MOCK DATA ---
+        const AppState = {
+            user: JSON.parse(localStorage.getItem('zeyede_ult_user')) || null,
+            postFile: null
+        };
+
+        const DATA = {
+            courses: [
+                { title: 'Python Programming', category: 'Computer Science', prog: 75, icon: '🐍', color: 'blue' },
+                { title: 'Logistics & Supply Chain', category: 'Business', prog: 90, icon: '📦', color: 'green' },
+                { title: 'Information Systems', category: 'Technology', prog: 60, icon: '💻', color: 'indigo' },
+                { title: 'Communicative English', category: 'Freshman Core', prog: 85, icon: '📝', color: 'purple' },
+                { title: 'General Psychology', category: 'Social Science', prog: 40, icon: '🧠', color: 'rose' },
+                { title: 'Critical Thinking', category: 'Logic', prog: 55, icon: '💡', color: 'orange' },
+                { title: 'Anthropology', category: 'Social Science', prog: 80, icon: '🌍', color: 'teal' }
+            ],
+            zoom: [
+                { title: 'Python Variables & Logic', tutor: 'Dr. Abebe', duration: '1h 20m', img: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=400' },
+                { title: 'Global Logistics Intro', tutor: 'Prof. Yabiru', duration: '45m', img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=400' },
+                { title: 'Exit Exam Prep 2016', tutor: 'DBU Staff', duration: '2h 00m', img: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=400' }
+            ],
+            vault: [
+                { title: '2016 Exit Exam PDF', type: 'ENCRYPTED PDF', icon: '📄' },
+                { title: 'Python Final Quiz Key', type: 'SOURCE CODE', icon: '🔑' },
+                { title: 'Psychology Cheat Sheet', type: 'SECRET DOC', icon: '📝' },
+                { title: 'Logistics formulas', type: 'EXCEL DATA', icon: '📊' }
+            ]
+        };
+
+        // --- 2. AUTHENTICATION LOGIC ---
+        function toggleAuthMode(isSignIn) {
+            document.getElementById('auth-title').innerText = isSignIn ? "Welcome Back" : "Create Account";
+            document.getElementById('signup-form').classList.toggle('hidden', isSignIn);
+            document.getElementById('signin-form').classList.toggle('hidden', !isSignIn);
+        }
+
+        function loadProfileImage(input) {
+            if(input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => document.getElementById('pfp-preview').src = e.target.result;
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function authenticate(type) {
+            if(type === 'signup') {
+                const name = document.getElementById('reg-name').value;
+                if(!name) return alert("እባክዎ ስምዎን ያስገቡ");
+                AppState.user = { name: name, pfp: document.getElementById('pfp-preview').src };
+            } else {
+                const email = document.getElementById('login-email').value;
+                if(!email) return alert("ኢሜይል ያስገቡ");
+                AppState.user = { name: "DBU Student", pfp: "https://ui-avatars.com/api/?name=Student&background=007cc3&color=fff" };
+            }
+            localStorage.setItem('zeyede_ult_user', JSON.stringify(AppState.user));
+            initApplication();
+        }
+
+        function logout() {
+            localStorage.removeItem('zeyede_ult_user');
+            location.reload();
+        }
+
+        // --- 3. APPLICATION INITIALIZATION ---
+        function initApplication() {
+            if(!AppState.user) return;
+            document.getElementById('auth-layer').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            
+            // Set User Data
+            document.getElementById('sidebar-name').innerText = AppState.user.name;
+            document.getElementById('sidebar-pfp').src = AppState.user.pfp;
+            document.getElementById('composer-pfp').src = AppState.user.pfp;
+
+            // Render Data
+            renderCourses();
+            renderZoom();
+            renderVault();
+            
+            // Initial Post
+            addPostToFeed("እንኳን ወደ Zeyede Academy በደህና መጣህ! ትምህርትህን ለመጀመር ዝግጁ ነህ?", "System Admin", "https://ui-avatars.com/api/?name=Admin&background=14bf96&color=fff");
+        }
+
+        // --- 4. NAVIGATION LOGIC ---
+        function switchTab(tabId) {
+            const tabs = ['feed', 'courses', 'zoom', 'vault'];
+            tabs.forEach(t => {
+                document.getElementById(`view-${t}`).style.display = (t === tabId) ? 'block' : 'none';
+                document.getElementById(`tab-${t}`).classList.toggle('active', t === tabId);
+            });
+            
+            const titles = {
+                'feed': 'Social Learning Feed', 'courses': 'My Academic Modules',
+                'zoom': 'Zoom Live Academy', 'vault': 'Z-Secrete Vault'
+            };
+            document.getElementById('header-title').innerText = titles[tabId];
+        }
+
+        // --- 5. SOCIAL FEED LOGIC ---
+        function attachFile(input) {
+            if(!input.files[0]) return;
+            AppState.postFile = input.files[0];
+            document.getElementById('file-preview-area').classList.remove('hidden');
+            document.getElementById('file-name-display').innerText = AppState.postFile.name;
+        }
+
+        function clearFile() {
+            AppState.postFile = null;
+            document.getElementById('post-file').value = "";
+            document.getElementById('file-preview-area').classList.add('hidden');
+        }
+
+        function publishPost() {
+            const text = document.getElementById('post-text').value;
+            if(!text && !AppState.postFile) return;
+
+            let mediaHtml = "";
+            if(AppState.postFile) {
+                const url = URL.createObjectURL(AppState.postFile);
+                if(AppState.postFile.type.startsWith('video')) {
+                    mediaHtml = `<video src="${url}" controls class="w-full rounded-xl mt-4 max-h-[300px] bg-black object-contain"></video>`;
+                } else {
+                    mediaHtml = `<img src="${url}" class="w-full rounded-xl mt-4 max-h-[400px] object-cover border border-slate-100">`;
+                }
+            }
+            
+            addPostToFeed(text + mediaHtml, AppState.user.name, AppState.user.pfp);
+            
+            document.getElementById('post-text').value = "";
+            clearFile();
+        }
+
+        function addPostToFeed(contentHtml, authorName, authorPfp) {
+            const container = document.getElementById('feed-container');
+            const post = document.createElement('div');
+            post.className = "glass-card p-6 fade-in";
+            post.innerHTML = `
+                <div class="flex items-center gap-3 mb-4">
+                    <img src="${authorPfp}" class="w-10 h-10 rounded-full object-cover shadow-sm">
+                    <div>
+                        <p class="font-black text-sm text-slate-800">${authorName}</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Just Now</p>
+                    </div>
+                </div>
+                <div class="text-slate-600 text-sm font-medium leading-relaxed">${contentHtml}</div>
+                <div class="flex gap-6 mt-6 pt-4 border-t border-slate-50">
+                    <button class="text-slate-400 hover:text-blue-600 text-xs font-black transition flex items-center gap-2">👍 Like</button>
+                    <button class="text-slate-400 hover:text-green-600 text-xs font-black transition flex items-center gap-2">💬 Reply</button>
+                </div>
+            `;
+            container.prepend(post);
+        }
+
+        // --- 6. RENDER DATA LOGIC ---
+        function renderCourses() {
+            document.getElementById('course-grid').innerHTML = DATA.courses.map(c => `
+                <div class="glass-card p-6 flex flex-col justify-between group cursor-pointer hover:border-${c.color}-200">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 bg-${c.color}-50 text-${c.color}-600 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition">${c.icon}</div>
+                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md">${c.category}</span>
+                        </div>
+                        <h4 class="font-black text-slate-800 text-lg leading-tight mb-6">${c.title}</h4>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] font-black text-slate-400 mb-1"><span>PROGRESS</span> <span>${c.prog}%</span></div>
+                        <div class="progress-bar"><div class="progress-fill bg-${c.color}-500" style="width: ${c.prog}%"></div></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderZoom() {
+            document.getElementById('zoom-grid').innerHTML = DATA.zoom.map(z => `
+                <div class="glass-card overflow-hidden cursor-pointer group">
+                    <div class="h-40 overflow-hidden relative">
+                        <img src="${z.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[10px] font-black px-2 py-1 rounded-md">${z.duration}</div>
+                    </div>
+                    <div class="p-5">
+                        <h4 class="font-black text-slate-800 line-clamp-1 mb-1">${z.title}</h4>
+                        <p class="text-xs text-slate-500 font-bold">Instructor: ${z.tutor}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderVault() {
+            document.getElementById('vault-grid').innerHTML = DATA.vault.map(v => `
+                <div class="glass-card p-6 text-center hover:bg-red-50 hover:border-red-100 transition cursor-pointer group">
+                    <div class="text-4xl mb-4 group-hover:scale-110 transition">${v.icon}</div>
+                    <h5 class="font-black text-slate-800 text-sm mb-1">${v.title}</h5>
+                    <p class="text-[9px] text-red-500 font-black uppercase tracking-widest">${v.type}</p>
+                </div>
+            `).join('');
+        }
+
+        // --- 7. VAULT SECURITY LOGIC ---
+        function unlockVault() {
+            const pin = document.getElementById('vault-pin').value;
+            if(pin === "1234" || pin === "0000") {
+                document.getElementById('vault-lock').style.display = 'none';
+                document.getElementById('vault-content').style.display = 'block';
+                document.getElementById('vault-pin').value = '';
+            } else {
+                alert("ACCESS DENIED: Incorrect PIN");
+                document.getElementById('vault-pin').value = '';
+            }
+        }
+
+        function lockVault() {
+            document.getElementById('vault-lock').style.display = 'flex';
+            document.getElementById('vault-content').style.display = 'none';
+        }
+
+        // Auto Start if logged in
+        if(AppState.user) initApplication();
+        else switchTab('feed'); // Set default tab UI
+    </script>
+</body>
+</html>
